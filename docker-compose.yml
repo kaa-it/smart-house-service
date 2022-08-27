@@ -1,0 +1,24 @@
+version: "3"
+
+networks:
+  common:
+    driver: bridge
+
+volumes:
+  data-volume:
+
+services:
+  mongodb:
+    image: mongo
+    environment:
+      - MONGO_INITDB_DATABASE=smart-house
+      - MONGO_INITDB_ROOT_USERNAME=smart
+      - MONGO_INITDB_ROOT_PASSWORD=smart
+    volumes:
+      - data-volume:/data/db
+      - ./mongo_init_script:/docker-entrypoint-initdb.d
+    ports:
+      - "0.0.0.0:27020-27022:27017-27019"
+    networks:
+      - common
+    restart: always
