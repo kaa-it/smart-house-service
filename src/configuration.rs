@@ -1,7 +1,7 @@
 use serde_aux::field_attributes::deserialize_number_from_string;
 use secrecy::{ExposeSecret, Secret};
 
-/// Возможные среды выполнения для приложения
+/// Supported environments for application
 pub enum Environment {
     Local,
     Production,
@@ -31,14 +31,14 @@ impl TryFrom<String> for Environment {
     }
 }
 
-/// Настройки приложения
+/// All settings
 #[derive(serde::Deserialize, Clone, Debug)]
 pub struct Settings {
     pub application: ApplicationSettings,
     pub database: DatabaseSettings,
 }
 
-/// Раздел собственных настроек приложения
+/// Application settings section
 #[derive(serde::Deserialize, Clone, Debug)]
 pub struct ApplicationSettings {
     #[serde(deserialize_with = "deserialize_number_from_string")]
@@ -46,7 +46,7 @@ pub struct ApplicationSettings {
     pub host: String,
 }
 
-/// Раздел настроек для базы данных
+/// Database settings section
 #[derive(serde::Deserialize, Clone, Debug)]
 pub struct DatabaseSettings {
     pub username: String,
@@ -73,8 +73,8 @@ impl Settings {
                 config::File::from(configuration_directory.join(environment.as_str()))
                     .required(true),
             )
-            // Добавляем настройки из переменных среды (с префиксом APP и '__' в качестве разделителя)
-            // Например `APP__APPLICATION__PORT=5001` будет устанавливать `Settings.application.port`
+            // Append settings from environment variables (with prefix APP and '__' as separator`)
+            // For example, `APP__APPLICATION__PORT=5001` will setup `Settings.application.port`
             .add_source(config::Environment::with_prefix("app").separator("__"))
             .build()?;
 
