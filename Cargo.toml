@@ -6,3 +6,13 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+config = { version = "0.13.1", features = ["yaml"] }
+serde = { version = "1.0.140", features = ["derive"] }
+serde-aux = "3.1.0"
+secrecy = { version = "0.8", features = ["serde"] }
+mongodb = "2.3.0"
+bson = "2.4.0"
+actix-web = "4.1.0"
+tokio = { version = "1.20.1", features = ["full"] }
+paperclip = { version = "0.7", features = ["actix4", "swagger-ui"] }
+anyhow = "1.0.62"

@@ -1,0 +1,8 @@
+application:
+  host: 127.0.0.1
+  port: 6537
+database:
+  host: "localhost"
+  port: 27020
+  username: "developer"
+  password: "Q123456q"
