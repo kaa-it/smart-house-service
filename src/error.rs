@@ -20,17 +20,33 @@ pub enum ApplicationError {
     )]
     PowerSwitchAlreadyExists { name: String, room_name: String },
 
+    /// Describes error in case of thermometer already exists in room
+    #[error(
+        r#"Thermometer with name '{}' already exists in room with name '{}'"#,
+        name,
+        room_name
+    )]
+    ThermometerAlreadyExists { name: String, room_name: String },
+
     /// Describes error in case of room is not found
     #[error(r#"Room with name '{}' not found"#, name)]
     RoomNotFound { name: String },
 
-    // Describes error in case of room is not found
+    /// Describes error in case of power switch is not found
     #[error(
         r#"Power switch with name '{}' not found in room with name '{}"#,
         name,
         room_name
     )]
     PowerSwitchNotFound { name: String, room_name: String },
+
+    /// Describes error in case of thermometer is not found
+    #[error(
+        r#"Thermometer with name '{}' not found in room with name '{}"#,
+        name,
+        room_name
+    )]
+    ThermometerNotFound { name: String, room_name: String },
 
     /// Internal Server Error
     #[error("Internal server error: {}", message)]
@@ -56,8 +72,10 @@ impl error::ResponseError for ApplicationError {
             ApplicationError::InternalServer { .. } => StatusCode::INTERNAL_SERVER_ERROR,
             ApplicationError::RoomAlreadyExists { .. } => StatusCode::CONFLICT,
             ApplicationError::PowerSwitchAlreadyExists { .. } => StatusCode::CONFLICT,
+            ApplicationError::ThermometerAlreadyExists { .. } => StatusCode::CONFLICT,
             ApplicationError::RoomNotFound { .. } => StatusCode::NOT_FOUND,
             ApplicationError::PowerSwitchNotFound { .. } => StatusCode::NOT_FOUND,
+            ApplicationError::ThermometerNotFound { .. } => StatusCode::NOT_FOUND,
         }
     }
 }

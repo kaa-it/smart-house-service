@@ -40,6 +40,26 @@ impl TestApp {
             .await
             .expect("Failed to execute request.")
     }
+
+    pub async fn add_thermometer(&self, body: String) -> reqwest::Response {
+        reqwest::Client::new()
+            .post(&format!("{}/api/v1/thermometers", &self.address))
+            .header("Content-Type", "application/json")
+            .body(body)
+            .send()
+            .await
+            .expect("Failed to execute request.")
+    }
+
+    pub async fn remove_thermometer(&self, body: String) -> reqwest::Response {
+        reqwest::Client::new()
+            .delete(&format!("{}/api/v1/thermometers", &self.address))
+            .header("Content-Type", "application/json")
+            .body(body)
+            .send()
+            .await
+            .expect("Failed to execute request.")
+    }
 }
 
 pub async fn spawn_app() -> TestApp {
@@ -72,6 +92,7 @@ async fn configure_database(config: &DatabaseSettings) -> anyhow::Result<()> {
 
     create_rooms_index(&db).await?;
     create_power_switches_index(&db).await?;
+    create_thermometers_index(&db).await?;
 
     Ok(())
 }
@@ -108,6 +129,24 @@ async fn create_power_switches_index(db: &Database) -> anyhow::Result<()> {
         .build();
 
     power_switches.create_index(model, None).await?;
+
+    Ok(())
+}
+
+async fn create_thermometers_index(db: &Database) -> anyhow::Result<()> {
+    let thermometers = db.collection::<Document>("thermometers");
+
+    let options = IndexOptions::builder()
+        .name(Some("nameAndRoomName".to_string()))
+        .unique(true)
+        .build();
+
+    let model = IndexModel::builder()
+        .keys(doc! {"name": 1u32, "room_name": 1u32})
+        .options(options)
+        .build();
+
+    thermometers.create_index(model, None).await?;
 
     Ok(())
 }
