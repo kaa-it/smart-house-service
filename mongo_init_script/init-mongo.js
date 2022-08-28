@@ -1,14 +1,3 @@
-db.createUser({
-    user: "developer",
-    pwd: "Q123456q",
-    roles: [
-        {
-            role: "readWrite",
-            db: "smart-house",
-        },
-    ],
-});
-
 db.createCollection("rooms");
 db.rooms.createIndex(
     { name: 1 },

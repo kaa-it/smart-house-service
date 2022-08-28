@@ -1,6 +1,7 @@
+use actix_web::{HttpResponse, Responder};
 use crate::error::ApplicationError;
 use crate::persistence::power_switches;
-use crate::persistence::power_switches::NewPowerSwitchEntity;
+use crate::persistence::power_switches::{NewPowerSwitchEntity, RemovePowerSwitchEntity};
 use mongodb::Database;
 use paperclip::actix::{
     api_v2_operation,
@@ -10,7 +11,10 @@ use paperclip::actix::{
 use serde::{Deserialize, Serialize};
 
 pub fn power_switches_config(cfg: &mut web::ServiceConfig) {
-    cfg.service(web::resource("/power_switches").route(web::post().to(add_power_switch)));
+    cfg.service(web::resource("/power_switches")
+        .route(web::post().to(add_power_switch))
+        .route(web::delete().to(remove_power_switch))
+    );
 }
 
 #[derive(Serialize, Deserialize, Apiv2Schema)]
@@ -61,4 +65,42 @@ pub async fn add_power_switch(
     };
 
     Ok(CreatedJson(()))
+}
+
+#[derive(Serialize, Deserialize, Apiv2Schema)]
+pub struct RemovePowerSwitchRequest {
+    /// Room name
+    room_name: String,
+
+    /// Power switch name
+    name: String,
+}
+
+/// Remove power switch from room
+#[api_v2_operation]
+pub async fn remove_power_switch(
+    db: web::Data<Database>,
+    power_switch: Json<RemovePowerSwitchRequest>
+) -> Result<HttpResponse, ApplicationError> {
+    let remove_power_switch = RemovePowerSwitchEntity {
+        name: power_switch.name.clone(),
+        room_name: power_switch.room_name.clone(),
+    };
+
+    if let Err(e) = power_switches::remove_power_switch(&db, &remove_power_switch).await {
+        return match e.downcast_ref::<crate::persistence::error::Error>() {
+            Some(crate::persistence::error::Error::NotFoundError) => {
+                Err(ApplicationError::PowerSwitchNotFoundError {
+                    name: remove_power_switch.name.clone(),
+                    room_name: remove_power_switch.room_name.clone(),
+                })
+            }
+            Some(_) => unreachable!(),
+            None => Err(ApplicationError::InternalServerError {
+                message: e.to_string(),
+            }),
+        };
+    };
+
+    Ok(HttpResponse::Ok().into())
 }

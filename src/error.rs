@@ -31,6 +31,13 @@ pub enum ApplicationError {
         name: String,
     },
 
+    // Describes error in case of room is not found
+    #[error(r#"Power switch with name '{}' not found in room with name '{}"#, name, room_name)]
+    PowerSwitchNotFoundError {
+        name: String,
+        room_name: String
+    },
+
     /// Internal Server Error
     #[error("Internal server error: {}", message)]
     InternalServerError {
@@ -54,7 +61,8 @@ impl error::ResponseError for ApplicationError {
             ApplicationError::InternalServerError{..} => StatusCode::INTERNAL_SERVER_ERROR,
             ApplicationError::RoomAlreadyExistsError{..} => StatusCode::CONFLICT,
             ApplicationError::PowerSwitchAlreadyExistsError{..} => StatusCode::CONFLICT,
-            ApplicationError::RoomNotFoundError{..} => StatusCode::NOT_FOUND
+            ApplicationError::RoomNotFoundError{..} => StatusCode::NOT_FOUND,
+            ApplicationError::PowerSwitchNotFoundError{..} => StatusCode::NOT_FOUND
         }
     }
 }
