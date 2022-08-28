@@ -2,7 +2,6 @@ use bson::Document;
 use bson::doc;
 use bson::oid::ObjectId;
 use mongodb::Database;
-use mongodb::error::Error;
 use crate::persistence::utils::check_already_exists;
 use serde::{Serialize, Deserialize};
 use futures::StreamExt;
@@ -55,7 +54,7 @@ pub async fn add_room(db: &Database, new_room: &NewRoomEntity) -> anyhow::Result
 pub async fn rooms(db: &Database) -> anyhow::Result<Vec<RoomEntity>> {
     let rooms = db.collection::<RoomEntity>("rooms");
 
-    let mut filter = bson::Document::new();
+    let filter = bson::Document::new();
 
     let mut cursor = rooms.find(filter, None).await?;
 

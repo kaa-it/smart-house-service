@@ -1,7 +1,5 @@
-use mongodb::Database;
-use mongodb::options::{ClientOptions, ResolverConfig};
 use uuid::Uuid;
-use smart_house_service::configuration::{DatabaseSettings, Settings};
+use smart_house_service::configuration::Settings;
 use smart_house_service::startup::Application;
 
 pub struct TestApp {

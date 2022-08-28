@@ -4,7 +4,7 @@ use actix_web::{App, HttpServer};
 use crate::configuration::{DatabaseSettings, Settings};
 use mongodb::{options::ClientOptions, options::ResolverConfig, Database, error::Error};
 use paperclip::actix::{OpenApiExt,  web::{self}};
-use crate::routes::{add_room, rooms};
+use crate::routes::rooms::{rooms_config};
 use paperclip::v2::models::{DefaultApiRaw, Info};
 
 pub struct Application {
@@ -62,8 +62,7 @@ fn run(listener: TcpListener, db: Database) -> Result<Server, std::io::Error> {
             .wrap_api_with_spec(spec.clone())
             .service(
                 web::scope("/api/v1")
-                    .route("/rooms", web::get().to(rooms))
-                    .route("/rooms", web::post().to(add_room))
+                    .configure(rooms_config)
             )
             .with_json_spec_at("/api/spec/v2")
             .with_swagger_ui_at("/docs")
