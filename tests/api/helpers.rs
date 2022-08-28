@@ -1,5 +1,8 @@
-use smart_house_service::configuration::Settings;
-use smart_house_service::startup::Application;
+use bson::{doc, Document};
+use mongodb::options::IndexOptions;
+use mongodb::{Database, IndexModel};
+use smart_house_service::configuration::{DatabaseSettings, Settings};
+use smart_house_service::startup::{init_db, Application};
 use uuid::Uuid;
 
 pub struct TestApp {
@@ -17,6 +20,26 @@ impl TestApp {
             .await
             .expect("Failed to execute request.")
     }
+
+    pub async fn add_power_switch(&self, body: String) -> reqwest::Response {
+        reqwest::Client::new()
+            .post(&format!("{}/api/v1/power_switches", &self.address))
+            .header("Content-Type", "application/json")
+            .body(body)
+            .send()
+            .await
+            .expect("Failed to execute request.")
+    }
+
+    pub async fn remove_power_switch(&self, body: String) -> reqwest::Response {
+        reqwest::Client::new()
+            .delete(&format!("{}/api/v1/power_switches", &self.address))
+            .header("Content-Type", "application/json")
+            .body(body)
+            .send()
+            .await
+            .expect("Failed to execute request.")
+    }
 }
 
 pub async fn spawn_app() -> TestApp {
@@ -26,6 +49,10 @@ pub async fn spawn_app() -> TestApp {
         c.application.port = 0;
         c
     };
+
+    configure_database(&configuration.database)
+        .await
+        .expect("Failed to configure database");
 
     let application = Application::build(configuration.clone())
         .await
@@ -38,4 +65,49 @@ pub async fn spawn_app() -> TestApp {
         address: format!("http://127.0.0.1:{}", application_port),
         port: application_port,
     }
+}
+
+async fn configure_database(config: &DatabaseSettings) -> anyhow::Result<()> {
+    let db = init_db(config).await?;
+
+    create_rooms_index(&db).await?;
+    create_power_switches_index(&db).await?;
+
+    Ok(())
+}
+
+async fn create_rooms_index(db: &Database) -> anyhow::Result<()> {
+    let rooms = db.collection::<Document>("rooms");
+
+    let options = IndexOptions::builder()
+        .name(Some("name".to_string()))
+        .unique(true)
+        .build();
+
+    let model = IndexModel::builder()
+        .keys(doc! {"name": 1u32})
+        .options(options)
+        .build();
+
+    rooms.create_index(model, None).await?;
+
+    Ok(())
+}
+
+async fn create_power_switches_index(db: &Database) -> anyhow::Result<()> {
+    let power_switches = db.collection::<Document>("power_switches");
+
+    let options = IndexOptions::builder()
+        .name(Some("nameAndRoomName".to_string()))
+        .unique(true)
+        .build();
+
+    let model = IndexModel::builder()
+        .keys(doc! {"name": 1u32, "room_name": 1u32})
+        .options(options)
+        .build();
+
+    power_switches.create_index(model, None).await?;
+
+    Ok(())
 }

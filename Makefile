@@ -12,6 +12,9 @@ fmt_check:
 fmt:
 	cargo fmt --all
 
+test:
+	cargo test --test api
+
 db_up:
 	docker-compose up -d
 

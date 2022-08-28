@@ -17,3 +17,23 @@ async fn add_room_successful() {
     // Assert
     assert_eq!(201, response.status().as_u16());
 }
+
+#[tokio::test]
+async fn add_room_failed_if_already_exists() {
+    // Arrange
+    let app = spawn_app().await;
+
+    let body = r#"
+    {
+        "name": "Гостинная"
+    }
+    "#;
+
+    // Act
+    let _response = app.add_room(body.into()).await;
+    let response = app.add_room(body.into()).await;
+
+    // Assert
+    assert_eq!(409, response.status().as_u16());
+
+}
