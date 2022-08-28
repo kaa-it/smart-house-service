@@ -4,5 +4,5 @@ application:
 database:
   host: "localhost"
   port: 27020
-  username: "developer"
-  password: "Q123456q"
+  username: "smart"
+  password: "smart"

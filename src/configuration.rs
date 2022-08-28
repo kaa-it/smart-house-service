@@ -85,12 +85,11 @@ impl Settings {
 impl DatabaseSettings {
     pub fn uri(&self) -> String {
         format!(
-            "mongodb://{}:{}@{}:{}/admin?authSource={}",
+            "mongodb://{}:{}@{}:{}",
             self.username,
             self.password.expose_secret(),
             self.host,
             self.port,
-            self.database_name
         )
     }
 }

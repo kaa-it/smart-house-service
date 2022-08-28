@@ -4,7 +4,8 @@ use actix_web::{App, HttpServer};
 use crate::configuration::{DatabaseSettings, Settings};
 use mongodb::{options::ClientOptions, options::ResolverConfig, Database, error::Error};
 use paperclip::actix::{OpenApiExt,  web::{self}};
-use crate::routes::rooms;
+use crate::routes::{add_room, rooms};
+use paperclip::v2::models::{DefaultApiRaw, Info};
 
 pub struct Application {
     port: u16,
@@ -41,19 +42,28 @@ pub async fn init_db(configuration: &DatabaseSettings) -> Result<Database, Error
     let options =
         ClientOptions::parse_with_resolver_config(&client_uri, ResolverConfig::cloudflare()).await?;
 
-    Ok(mongodb::Client::with_options(options)?.database("openers"))
+    Ok(mongodb::Client::with_options(options)?.database(configuration.database_name.as_str()))
 }
 
 fn run(listener: TcpListener, db: Database) -> Result<Server, std::io::Error> {
     let database = web::Data::new(db);
 
+    let mut spec = DefaultApiRaw::default();
+
+    spec.info = Info {
+        version: "0.1".into(),
+        title: "Smart House Service".into(),
+        ..Default::default()
+    };
+
     let server = HttpServer::new(move || {
         App::new()
             .app_data(database.clone())
-            .wrap_api()
+            .wrap_api_with_spec(spec.clone())
             .service(
                 web::scope("/api/v1")
                     .route("/rooms", web::get().to(rooms))
+                    .route("/rooms", web::post().to(add_room))
             )
             .with_json_spec_at("/api/spec/v2")
             .with_swagger_ui_at("/docs")
