@@ -1849,6 +1849,7 @@ dependencies = [
  "anyhow",
  "bson",
  "config",
+ "futures",
  "mongodb",
  "paperclip",
  "reqwest",

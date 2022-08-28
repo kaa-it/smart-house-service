@@ -30,21 +30,15 @@ impl From<&RoomEntity> for Room {
 
 /// Get list of rooms
 #[api_v2_operation]
-pub async fn rooms(db: web::Data<Database>) -> Result<Json<Vec<Room>>, Error> {
-    let rooms = vec![
-        Room {
-            name: "Гостинная".to_string(),
-            power_switches: vec!["Один".to_string(), "Два".to_string()],
-            thermometers: vec![]
-        },
-        Room {
-            name: "Ванная".to_string(),
-            power_switches: vec!["Один".to_string()],
-            thermometers: vec!["Один".to_string()]
-        },
-    ];
+pub async fn rooms(db: web::Data<Database>) -> Result<Json<Vec<Room>>, ApplicationError> {
+    let rooms = match persistence::rooms::rooms(&db).await {
+        Err(e) => {
+            return Err(ApplicationError::InternalServerError {message: e.to_string()});
+        }
+        Ok(r) => r,
+    };
 
-    Ok(web::Json(rooms))
+    Ok(web::Json(rooms.iter().map(Room::from).collect()))
 }
 
 #[derive(Serialize, Deserialize, Apiv2Schema)]
