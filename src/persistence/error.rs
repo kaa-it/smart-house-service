@@ -4,4 +4,7 @@ use thiserror::Error;
 pub(crate) enum Error {
     #[error("Already exists")]
     AlreadyExistsError,
+
+    #[error("Not found")]
+    NotFoundError
 }

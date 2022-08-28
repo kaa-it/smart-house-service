@@ -1,9 +1,13 @@
 use crate::error::ApplicationError;
+use crate::persistence::power_switches;
 use crate::persistence::power_switches::NewPowerSwitchEntity;
 use mongodb::Database;
-use paperclip::actix::{api_v2_operation, web::{self, Json}, Apiv2Schema, CreatedJson};
-use crate::persistence::power_switches;
-use serde::{Serialize, Deserialize};
+use paperclip::actix::{
+    api_v2_operation,
+    web::{self, Json},
+    Apiv2Schema, CreatedJson,
+};
+use serde::{Deserialize, Serialize};
 
 pub fn power_switches_config(cfg: &mut web::ServiceConfig) {
     cfg.service(web::resource("/power_switches").route(web::post().to(add_power_switch)));
@@ -45,10 +49,15 @@ pub async fn add_power_switch(
                     room_name: new_power_switch.room_name.clone(),
                 })
             }
+            Some(crate::persistence::error::Error::NotFoundError) => {
+                Err(ApplicationError::RoomNotFoundError {
+                    name: new_power_switch.room_name.clone(),
+                })
+            }
             None => Err(ApplicationError::InternalServerError {
                 message: e.to_string(),
             }),
-        }
+        };
     };
 
     Ok(CreatedJson(()))

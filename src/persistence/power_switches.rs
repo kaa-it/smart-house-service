@@ -2,6 +2,7 @@ use bson::{doc, Document};
 use mongodb::Database;
 use crate::persistence::utils::check_already_exists;
 use serde::{Serialize, Deserialize};
+use crate::persistence::error::Error::NotFoundError;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct NewPowerSwitchEntity {
@@ -12,6 +13,18 @@ pub struct NewPowerSwitchEntity {
 }
 
 pub async fn add_power_switch(db: &Database, new_power_switch: &NewPowerSwitchEntity) -> anyhow::Result<()> {
+    let rooms = db.collection::<Document>("rooms");
+
+    let filter = doc! {
+        "name": &new_power_switch.room_name
+    };
+
+    let room = rooms.find_one(filter, None).await?;
+
+    if room.is_none() {
+        return Err(NotFoundError.into());
+    }
+
     let docs = db.collection::<Document>("power_switches");
 
     let power_switch = doc! {

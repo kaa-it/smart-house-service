@@ -65,6 +65,7 @@ pub async fn add_room(db: web::Data<Database>, room: Json<AddRoomRequest>) -> Re
                 Some(crate::persistence::error::Error::AlreadyExistsError) => {
                     Err(ApplicationError::RoomAlreadyExistsError { name: room.name.clone() })
                 }
+                Some(_) => unreachable!(),
                 None => Err(ApplicationError::InternalServerError { message: e.to_string() }),
             }
         }
