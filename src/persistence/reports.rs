@@ -1,9 +1,9 @@
 use crate::persistence::power_switches::NewPowerSwitchEntity;
 use crate::persistence::rooms::RoomEntity;
+use crate::persistence::thermometers::NewThermometerEntity;
 use bson::doc;
 use futures::StreamExt;
 use mongodb::Database;
-use crate::persistence::thermometers::NewThermometerEntity;
 
 pub async fn report_all(db: &Database) -> anyhow::Result<String> {
     let mut report = String::new();

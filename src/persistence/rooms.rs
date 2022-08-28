@@ -1,3 +1,4 @@
+use crate::persistence::error::Error::NotFoundError;
 use crate::persistence::utils::check_already_exists;
 use bson::doc;
 use bson::oid::ObjectId;
@@ -5,7 +6,6 @@ use bson::Document;
 use futures::StreamExt;
 use mongodb::Database;
 use serde::{Deserialize, Serialize};
-use crate::persistence::error::Error::NotFoundError;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct NewRoomEntity {
@@ -91,7 +91,9 @@ pub async fn remove_room(db: &Database, remove_room: &RemoveRoomEntity) -> anyho
         "room_name": &remove_room.name
     };
 
-    power_switches.delete_many(power_switch_filter, None).await?;
+    power_switches
+        .delete_many(power_switch_filter, None)
+        .await?;
 
     let thermometers = db.collection::<Document>("thermometers");
 

@@ -35,7 +35,6 @@ async fn add_room_failed_if_already_exists() {
 
     // Assert
     assert_eq!(409, response.status().as_u16());
-
 }
 
 #[tokio::test]

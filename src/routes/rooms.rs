@@ -1,7 +1,7 @@
-use actix_web::HttpResponse;
 use crate::error::ApplicationError;
 use crate::persistence;
 use crate::persistence::rooms::{NewRoomEntity, RemoveRoomEntity, RoomEntity};
+use actix_web::HttpResponse;
 use mongodb::Database;
 use paperclip::actix::{
     api_v2_operation,
@@ -15,7 +15,7 @@ pub fn rooms_config(cfg: &mut web::ServiceConfig) {
         web::resource("/rooms")
             .route(web::get().to(rooms))
             .route(web::post().to(add_room))
-            .route(web::delete().to(remove_room))
+            .route(web::delete().to(remove_room)),
     );
 }
 
@@ -119,7 +119,7 @@ pub async fn remove_room(
             None => Err(ApplicationError::InternalServer {
                 message: e.to_string(),
             }),
-        }
+        };
     };
 
     Ok(HttpResponse::Ok().into())

@@ -15,6 +15,9 @@ fmt:
 test:
 	cargo test --test api
 
+example_report:
+	cargo run --example report
+
 db_up:
 	docker-compose up -d
 

@@ -53,7 +53,6 @@ async fn add_thermometer_failed_if_already_exists() {
     let _response = app.add_thermometer(thermometer_body.into()).await;
     let response = app.add_thermometer(thermometer_body.into()).await;
 
-
     // Assert
     assert_eq!(409, response.status().as_u16());
 }

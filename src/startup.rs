@@ -1,6 +1,8 @@
 use crate::configuration::{DatabaseSettings, Settings};
 use crate::routes::power_switches::power_switches_config;
+use crate::routes::reports::reports_config;
 use crate::routes::rooms::rooms_config;
+use crate::routes::thermometers::thermometers_config;
 use actix_web::dev::Server;
 use actix_web::{App, HttpServer};
 use mongodb::{error::Error, options::ClientOptions, options::ResolverConfig, Database};
@@ -10,8 +12,6 @@ use paperclip::actix::{
 };
 use paperclip::v2::models::{Api, DefaultSchemaRaw, Info, Parameter, Response};
 use std::net::TcpListener;
-use crate::routes::reports::reports_config;
-use crate::routes::thermometers::thermometers_config;
 
 pub struct Application {
     port: u16,
@@ -73,7 +73,7 @@ fn run(listener: TcpListener, db: Database) -> Result<Server, std::io::Error> {
                     .configure(rooms_config)
                     .configure(power_switches_config)
                     .configure(thermometers_config)
-                    .configure(reports_config)
+                    .configure(reports_config),
             )
             .with_json_spec_at("/api/spec/v2")
             .with_swagger_ui_at("/docs")

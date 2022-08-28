@@ -53,7 +53,6 @@ async fn add_power_switch_failed_if_already_exists() {
     let _response = app.add_power_switch(power_switch_body.into()).await;
     let response = app.add_power_switch(power_switch_body.into()).await;
 
-
     // Assert
     assert_eq!(409, response.status().as_u16());
 }
@@ -116,7 +115,9 @@ async fn remove_power_switch_successful() {
     // Act
     let _response = app.add_room(room_body.into()).await;
     let _response = app.add_power_switch(power_switch_body.into()).await;
-    let response = app.remove_power_switch(remove_power_switch_body.into()).await;
+    let response = app
+        .remove_power_switch(remove_power_switch_body.into())
+        .await;
 
     // Assert
     assert_eq!(200, response.status().as_u16());
@@ -135,7 +136,9 @@ async fn remove_power_switch_failed_if_not_found() {
     "#;
 
     // Act
-    let response = app.remove_power_switch(remove_power_switch_body.into()).await;
+    let response = app
+        .remove_power_switch(remove_power_switch_body.into())
+        .await;
 
     // Assert
     assert_eq!(404, response.status().as_u16());
