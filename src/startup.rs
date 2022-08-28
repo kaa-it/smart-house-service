@@ -10,6 +10,7 @@ use paperclip::actix::{
 };
 use paperclip::v2::models::{Api, DefaultSchemaRaw, Info, Parameter, Response};
 use std::net::TcpListener;
+use crate::routes::reports::reports_config;
 use crate::routes::thermometers::thermometers_config;
 
 pub struct Application {
@@ -71,7 +72,8 @@ fn run(listener: TcpListener, db: Database) -> Result<Server, std::io::Error> {
                 web::scope("/api/v1")
                     .configure(rooms_config)
                     .configure(power_switches_config)
-                    .configure(thermometers_config),
+                    .configure(thermometers_config)
+                    .configure(reports_config)
             )
             .with_json_spec_at("/api/spec/v2")
             .with_swagger_ui_at("/docs")

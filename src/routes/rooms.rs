@@ -108,21 +108,18 @@ pub async fn remove_room(
         name: room.name.clone(),
     };
 
-    let room = match persistence::rooms::remove_room(&db, &remove_room).await {
-        Err(e) => {
-            return match e.downcast_ref::<crate::persistence::error::Error>() {
-                Some(crate::persistence::error::Error::NotFoundError) => {
-                    Err(ApplicationError::RoomNotFound {
-                        name: remove_room.name.clone(),
-                    })
-                }
-                Some(_) => unreachable!(),
-                None => Err(ApplicationError::InternalServer {
-                    message: e.to_string(),
-                }),
+    if let Err(e) = persistence::rooms::remove_room(&db, &remove_room).await {
+        return match e.downcast_ref::<crate::persistence::error::Error>() {
+            Some(crate::persistence::error::Error::NotFoundError) => {
+                Err(ApplicationError::RoomNotFound {
+                    name: remove_room.name.clone(),
+                })
             }
+            Some(_) => unreachable!(),
+            None => Err(ApplicationError::InternalServer {
+                message: e.to_string(),
+            }),
         }
-        Ok(room) => room,
     };
 
     Ok(HttpResponse::Ok().into())
