@@ -5,9 +5,15 @@ use bson::Document;
 use futures::StreamExt;
 use mongodb::Database;
 use serde::{Deserialize, Serialize};
+use crate::persistence::error::Error::NotFoundError;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct NewRoomEntity {
+    pub name: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct RemoveRoomEntity {
     pub name: String,
 }
 
@@ -64,4 +70,38 @@ pub async fn rooms(db: &Database) -> anyhow::Result<Vec<RoomEntity>> {
     }
 
     Ok(rooms)
+}
+
+pub async fn remove_room(db: &Database, remove_room: &RemoveRoomEntity) -> anyhow::Result<()> {
+    let rooms = db.collection::<Document>("rooms");
+
+    let room_filter = doc! {
+        "name": &remove_room.name
+    };
+
+    let room = rooms.find_one(room_filter.clone(), None).await?;
+
+    if room.is_none() {
+        return Err(NotFoundError.into());
+    }
+
+    let power_switches = db.collection::<Document>("power_switches");
+
+    let power_switch_filter = doc! {
+        "room_name": &remove_room.name
+    };
+
+    power_switches.delete_many(power_switch_filter, None).await?;
+
+    let thermometers = db.collection::<Document>("thermometers");
+
+    let thermometer_filter = doc! {
+        "room_name": &remove_room.name
+    };
+
+    thermometers.delete_many(thermometer_filter, None).await?;
+
+    rooms.delete_one(room_filter, None).await?;
+
+    Ok(())
 }

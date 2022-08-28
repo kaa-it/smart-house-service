@@ -1,6 +1,7 @@
+use actix_web::HttpResponse;
 use crate::error::ApplicationError;
 use crate::persistence;
-use crate::persistence::rooms::{NewRoomEntity, RoomEntity};
+use crate::persistence::rooms::{NewRoomEntity, RemoveRoomEntity, RoomEntity};
 use mongodb::Database;
 use paperclip::actix::{
     api_v2_operation,
@@ -13,7 +14,8 @@ pub fn rooms_config(cfg: &mut web::ServiceConfig) {
     cfg.service(
         web::resource("/rooms")
             .route(web::get().to(rooms))
-            .route(web::post().to(add_room)),
+            .route(web::post().to(add_room))
+            .route(web::delete().to(remove_room))
     );
 }
 
@@ -88,4 +90,40 @@ pub async fn add_room(
     };
 
     Ok(CreatedJson(Room::from(&room)))
+}
+
+#[derive(Serialize, Deserialize, Apiv2Schema)]
+pub struct RemoveRoomRequest {
+    /// Room name
+    name: String,
+}
+
+/// Remove room to smart house
+#[api_v2_operation]
+pub async fn remove_room(
+    db: web::Data<Database>,
+    room: Json<RemoveRoomRequest>,
+) -> Result<HttpResponse, ApplicationError> {
+    let remove_room = RemoveRoomEntity {
+        name: room.name.clone(),
+    };
+
+    let room = match persistence::rooms::remove_room(&db, &remove_room).await {
+        Err(e) => {
+            return match e.downcast_ref::<crate::persistence::error::Error>() {
+                Some(crate::persistence::error::Error::NotFoundError) => {
+                    Err(ApplicationError::RoomNotFound {
+                        name: remove_room.name.clone(),
+                    })
+                }
+                Some(_) => unreachable!(),
+                None => Err(ApplicationError::InternalServer {
+                    message: e.to_string(),
+                }),
+            }
+        }
+        Ok(room) => room,
+    };
+
+    Ok(HttpResponse::Ok().into())
 }

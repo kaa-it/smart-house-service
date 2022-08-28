@@ -21,6 +21,16 @@ impl TestApp {
             .expect("Failed to execute request.")
     }
 
+    pub async fn remove_room(&self, body: String) -> reqwest::Response {
+        reqwest::Client::new()
+            .delete(&format!("{}/api/v1/rooms", &self.address))
+            .header("Content-Type", "application/json")
+            .body(body)
+            .send()
+            .await
+            .expect("Failed to execute request.")
+    }
+
     pub async fn add_power_switch(&self, body: String) -> reqwest::Response {
         reqwest::Client::new()
             .post(&format!("{}/api/v1/power_switches", &self.address))
