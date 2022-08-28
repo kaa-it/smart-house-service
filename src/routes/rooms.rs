@@ -13,7 +13,6 @@ pub fn rooms_config(cfg: &mut web::ServiceConfig) {
     );
 }
 
-
 #[derive(Serialize, Deserialize, Apiv2Schema)]
 pub struct Room {
     /// Room name

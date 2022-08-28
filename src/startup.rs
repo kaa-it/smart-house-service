@@ -6,6 +6,7 @@ use mongodb::{options::ClientOptions, options::ResolverConfig, Database, error::
 use paperclip::actix::{OpenApiExt,  web::{self}};
 use crate::routes::rooms::{rooms_config};
 use paperclip::v2::models::{DefaultApiRaw, Info};
+use crate::routes::power_switches::power_switches_config;
 
 pub struct Application {
     port: u16,
@@ -63,6 +64,7 @@ fn run(listener: TcpListener, db: Database) -> Result<Server, std::io::Error> {
             .service(
                 web::scope("/api/v1")
                     .configure(rooms_config)
+                    .configure(power_switches_config)
             )
             .with_json_spec_at("/api/spec/v2")
             .with_swagger_ui_at("/docs")

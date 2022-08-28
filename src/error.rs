@@ -17,6 +17,13 @@ pub enum ApplicationError {
         name: String,
     },
 
+    /// Describes error in case of power switch already exists in room
+    #[error(r#"Power switch with name "{}" already exists in room with name "{}"#, name, room_name)]
+    PowerSwitchAlreadyExistsError {
+        name: String,
+        room_name: String,
+    },
+
     /// Internal Server Error
     #[error("Internal server error: {}", message)]
     InternalServerError {
@@ -39,6 +46,7 @@ impl error::ResponseError for ApplicationError {
         match *self {
             ApplicationError::InternalServerError{..} => StatusCode::INTERNAL_SERVER_ERROR,
             ApplicationError::RoomAlreadyExistsError{..} => StatusCode::CONFLICT,
+            ApplicationError::PowerSwitchAlreadyExistsError{..} => StatusCode::CONFLICT
         }
     }
 }
