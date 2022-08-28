@@ -1,6 +1,6 @@
-use uuid::Uuid;
 use smart_house_service::configuration::Settings;
 use smart_house_service::startup::Application;
+use uuid::Uuid;
 
 pub struct TestApp {
     pub address: String,

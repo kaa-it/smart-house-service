@@ -1,9 +1,13 @@
-use mongodb::Database;
-use serde::{Serialize, Deserialize};
-use paperclip::actix::{Apiv2Schema, api_v2_operation, web::{self, Json}, CreatedJson};
 use crate::error::ApplicationError;
 use crate::persistence;
 use crate::persistence::rooms::{NewRoomEntity, RoomEntity};
+use mongodb::Database;
+use paperclip::actix::{
+    api_v2_operation,
+    web::{self, Json},
+    Apiv2Schema, CreatedJson,
+};
+use serde::{Deserialize, Serialize};
 
 pub fn rooms_config(cfg: &mut web::ServiceConfig) {
     cfg.service(
@@ -22,7 +26,7 @@ pub struct Room {
     power_switches: Vec<String>,
 
     /// List of thermometer names
-    thermometers: Vec<String>
+    thermometers: Vec<String>,
 }
 
 impl From<&RoomEntity> for Room {
@@ -40,7 +44,9 @@ impl From<&RoomEntity> for Room {
 pub async fn rooms(db: web::Data<Database>) -> Result<Json<Vec<Room>>, ApplicationError> {
     let rooms = match persistence::rooms::rooms(&db).await {
         Err(e) => {
-            return Err(ApplicationError::InternalServerError {message: e.to_string()});
+            return Err(ApplicationError::InternalServer {
+                message: e.to_string(),
+            });
         }
         Ok(r) => r,
     };
@@ -56,17 +62,26 @@ pub struct AddRoomRequest {
 
 /// Add new room to smart house
 #[api_v2_operation]
-pub async fn add_room(db: web::Data<Database>, room: Json<AddRoomRequest>) -> Result<CreatedJson<Room>, ApplicationError> {
-    let new_room = NewRoomEntity { name: room.name.clone() };
+pub async fn add_room(
+    db: web::Data<Database>,
+    room: Json<AddRoomRequest>,
+) -> Result<CreatedJson<Room>, ApplicationError> {
+    let new_room = NewRoomEntity {
+        name: room.name.clone(),
+    };
 
     let room = match persistence::rooms::add_room(&db, &new_room).await {
         Err(e) => {
             return match e.downcast_ref::<crate::persistence::error::Error>() {
                 Some(crate::persistence::error::Error::AlreadyExistsError) => {
-                    Err(ApplicationError::RoomAlreadyExistsError { name: room.name.clone() })
+                    Err(ApplicationError::RoomAlreadyExists {
+                        name: room.name.clone(),
+                    })
                 }
                 Some(_) => unreachable!(),
-                None => Err(ApplicationError::InternalServerError { message: e.to_string() }),
+                None => Err(ApplicationError::InternalServer {
+                    message: e.to_string(),
+                }),
             }
         }
         Ok(room) => room,

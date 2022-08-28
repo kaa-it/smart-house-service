@@ -1,5 +1,5 @@
 pub mod configuration;
-pub mod startup;
-pub mod routes;
-mod persistence;
 mod error;
+mod persistence;
+pub mod routes;
+pub mod startup;

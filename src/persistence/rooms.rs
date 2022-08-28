@@ -1,14 +1,14 @@
-use bson::Document;
+use crate::persistence::utils::check_already_exists;
 use bson::doc;
 use bson::oid::ObjectId;
-use mongodb::Database;
-use crate::persistence::utils::check_already_exists;
-use serde::{Serialize, Deserialize};
+use bson::Document;
 use futures::StreamExt;
+use mongodb::Database;
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct NewRoomEntity {
-    pub name: String
+    pub name: String,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -23,7 +23,7 @@ pub struct RoomEntity {
     pub power_switches: Vec<String>,
 
     /// List of thermometer names
-    pub thermometers: Vec<String>
+    pub thermometers: Vec<String>,
 }
 
 pub async fn add_room(db: &Database, new_room: &NewRoomEntity) -> anyhow::Result<RoomEntity> {

@@ -6,5 +6,5 @@ pub(crate) enum Error {
     AlreadyExistsError,
 
     #[error("Not found")]
-    NotFoundError
+    NotFoundError,
 }

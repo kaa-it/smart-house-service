@@ -1,15 +1,15 @@
+use crate::persistence::error::Error::NotFoundError;
+use crate::persistence::utils::check_already_exists;
 use bson::{doc, Document};
 use mongodb::Database;
-use crate::persistence::utils::check_already_exists;
-use serde::{Serialize, Deserialize};
-use crate::persistence::error::Error::NotFoundError;
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct NewPowerSwitchEntity {
     pub name: String,
     pub room_name: String,
     pub description: String,
-    pub power_consumption: f64
+    pub power_consumption: f64,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -18,7 +18,10 @@ pub struct RemovePowerSwitchEntity {
     pub room_name: String,
 }
 
-pub async fn add_power_switch(db: &Database, new_power_switch: &NewPowerSwitchEntity) -> anyhow::Result<()> {
+pub async fn add_power_switch(
+    db: &Database,
+    new_power_switch: &NewPowerSwitchEntity,
+) -> anyhow::Result<()> {
     let rooms = db.collection::<Document>("rooms");
 
     let filter = doc! {
@@ -61,7 +64,10 @@ pub async fn add_power_switch(db: &Database, new_power_switch: &NewPowerSwitchEn
     Ok(())
 }
 
-pub async fn remove_power_switch(db: &Database, remove_power_switch: &RemovePowerSwitchEntity) -> anyhow::Result<()> {
+pub async fn remove_power_switch(
+    db: &Database,
+    remove_power_switch: &RemovePowerSwitchEntity,
+) -> anyhow::Result<()> {
     let power_switches = db.collection::<Document>("power_switches");
 
     let filter = doc! {

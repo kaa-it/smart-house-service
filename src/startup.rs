@@ -1,16 +1,19 @@
-use std::net::TcpListener;
+use crate::configuration::{DatabaseSettings, Settings};
+use crate::routes::power_switches::power_switches_config;
+use crate::routes::rooms::rooms_config;
 use actix_web::dev::Server;
 use actix_web::{App, HttpServer};
-use crate::configuration::{DatabaseSettings, Settings};
-use mongodb::{options::ClientOptions, options::ResolverConfig, Database, error::Error};
-use paperclip::actix::{OpenApiExt,  web::{self}};
-use crate::routes::rooms::{rooms_config};
-use paperclip::v2::models::{DefaultApiRaw, Info};
-use crate::routes::power_switches::power_switches_config;
+use mongodb::{error::Error, options::ClientOptions, options::ResolverConfig, Database};
+use paperclip::actix::{
+    web::{self},
+    OpenApiExt,
+};
+use paperclip::v2::models::{Api, DefaultSchemaRaw, Info, Parameter, Response};
+use std::net::TcpListener;
 
 pub struct Application {
     port: u16,
-    server: Server
+    server: Server,
 }
 
 impl Application {
@@ -41,7 +44,8 @@ pub async fn init_db(configuration: &DatabaseSettings) -> Result<Database, Error
     let client_uri = configuration.uri();
 
     let options =
-        ClientOptions::parse_with_resolver_config(&client_uri, ResolverConfig::cloudflare()).await?;
+        ClientOptions::parse_with_resolver_config(&client_uri, ResolverConfig::cloudflare())
+            .await?;
 
     Ok(mongodb::Client::with_options(options)?.database(configuration.database_name.as_str()))
 }
@@ -49,11 +53,12 @@ pub async fn init_db(configuration: &DatabaseSettings) -> Result<Database, Error
 fn run(listener: TcpListener, db: Database) -> Result<Server, std::io::Error> {
     let database = web::Data::new(db);
 
-    let mut spec = DefaultApiRaw::default();
-
-    spec.info = Info {
-        version: "0.1".into(),
-        title: "Smart House Service".into(),
+    let spec = Api::<Parameter<DefaultSchemaRaw>, Response<DefaultSchemaRaw>, DefaultSchemaRaw> {
+        info: Info {
+            version: "0.1".into(),
+            title: "Smart House Service".into(),
+            ..Default::default()
+        },
         ..Default::default()
     };
 
@@ -64,14 +69,14 @@ fn run(listener: TcpListener, db: Database) -> Result<Server, std::io::Error> {
             .service(
                 web::scope("/api/v1")
                     .configure(rooms_config)
-                    .configure(power_switches_config)
+                    .configure(power_switches_config),
             )
             .with_json_spec_at("/api/spec/v2")
             .with_swagger_ui_at("/docs")
             .build()
     })
-        .listen(listener)?
-        .run();
+    .listen(listener)?
+    .run();
 
     Ok(server)
 }

@@ -1,7 +1,7 @@
-use actix_web::{HttpResponse, Responder};
 use crate::error::ApplicationError;
 use crate::persistence::power_switches;
 use crate::persistence::power_switches::{NewPowerSwitchEntity, RemovePowerSwitchEntity};
+use actix_web::HttpResponse;
 use mongodb::Database;
 use paperclip::actix::{
     api_v2_operation,
@@ -11,9 +11,10 @@ use paperclip::actix::{
 use serde::{Deserialize, Serialize};
 
 pub fn power_switches_config(cfg: &mut web::ServiceConfig) {
-    cfg.service(web::resource("/power_switches")
-        .route(web::post().to(add_power_switch))
-        .route(web::delete().to(remove_power_switch))
+    cfg.service(
+        web::resource("/power_switches")
+            .route(web::post().to(add_power_switch))
+            .route(web::delete().to(remove_power_switch)),
     );
 }
 
@@ -48,17 +49,17 @@ pub async fn add_power_switch(
     if let Err(e) = power_switches::add_power_switch(&db, &new_power_switch).await {
         return match e.downcast_ref::<crate::persistence::error::Error>() {
             Some(crate::persistence::error::Error::AlreadyExistsError) => {
-                Err(ApplicationError::PowerSwitchAlreadyExistsError {
+                Err(ApplicationError::PowerSwitchAlreadyExists {
                     name: new_power_switch.name.clone(),
                     room_name: new_power_switch.room_name.clone(),
                 })
             }
             Some(crate::persistence::error::Error::NotFoundError) => {
-                Err(ApplicationError::RoomNotFoundError {
+                Err(ApplicationError::RoomNotFound {
                     name: new_power_switch.room_name.clone(),
                 })
             }
-            None => Err(ApplicationError::InternalServerError {
+            None => Err(ApplicationError::InternalServer {
                 message: e.to_string(),
             }),
         };
@@ -80,7 +81,7 @@ pub struct RemovePowerSwitchRequest {
 #[api_v2_operation]
 pub async fn remove_power_switch(
     db: web::Data<Database>,
-    power_switch: Json<RemovePowerSwitchRequest>
+    power_switch: Json<RemovePowerSwitchRequest>,
 ) -> Result<HttpResponse, ApplicationError> {
     let remove_power_switch = RemovePowerSwitchEntity {
         name: power_switch.name.clone(),
@@ -90,13 +91,13 @@ pub async fn remove_power_switch(
     if let Err(e) = power_switches::remove_power_switch(&db, &remove_power_switch).await {
         return match e.downcast_ref::<crate::persistence::error::Error>() {
             Some(crate::persistence::error::Error::NotFoundError) => {
-                Err(ApplicationError::PowerSwitchNotFoundError {
+                Err(ApplicationError::PowerSwitchNotFound {
                     name: remove_power_switch.name.clone(),
                     room_name: remove_power_switch.room_name.clone(),
                 })
             }
             Some(_) => unreachable!(),
-            None => Err(ApplicationError::InternalServerError {
+            None => Err(ApplicationError::InternalServer {
                 message: e.to_string(),
             }),
         };
